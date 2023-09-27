@@ -1,0 +1,48 @@
+#First go to posts directory and rebuild its docker image using (docker build -t <username>/posts:<version> <directroy-where-to-build use '.' for current dir>)
+# We have buckets of different types of  objects, so we have our deployment in bucket of apps/v1
+apiVersion: apps/v1
+kind: Deployment
+#Config options for the object we want to create
+metadata:
+  name: posts-depl
+spec:
+  # replicas is n.o of pods we want to create for running some image
+  replicas: 1
+  # Selector and template tell the deploymenet which pods to manage
+  # find all the pods with label of "posts"
+  selector:
+    matchLabels:
+      app: posts
+  # congiguration applied to the pod that the deployment is going to create  
+  template:
+    metadata:
+    #We want to have a pod of label of posts
+      labels:
+        app: posts
+    # specifying the specification for the pod i,e what containers shold it have
+    spec:
+      containers:
+        - name: posts
+          image: ameen252/posts
+#Config for cluster IP service
+# Its better we put the deployment config and the IP service that maps it in same file
+# We can create a new file for this service or add it in existing oen using ---
+---
+# We re creating a cluster IP service to allow access to our Posts Pod as well
+apiVersion: v1
+kind: Service
+metadata:  
+  name: posts-clusterip-srv
+spec:
+  selector:
+    # Tell the service what pods it is allowing access to
+    # We are telling the service to redirect the traffic to pod with label of 'posts'
+    app: posts
+  #We can specify the type of CLUSTERIP else k8 it will auto detect it
+  #type: ClusterIP
+  ports:
+    - name: posts
+      protocol: TCP
+      port: 4000
+      targetPort: 4000
+
