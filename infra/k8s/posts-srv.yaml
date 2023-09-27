@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: posts-srv
+spec:
+  #Node Port expose the pods of cluster to outside world
+  type: NodePort
+  #telling which pods to expose
+  selector: 
+    app: posts
+  #Write port that is used by posts service i.e 4000
+  ports:
+  #name id just for naming purposes we can change it to anything
+    - name: posts
+      protocol: TCP
+      #Send traffic on node port service on port 4000, We can also change it to 5000
+      port: 4000
+      # Redirect the traffic on port 4000 on pod conatiner itself, This should be same port on whcih service is running
+      targetPort: 4000
+# start the service using kubectl apply -f posts-srv.yaml
+# get services running (kubectl gets services)
+# describe service (kubectl describe service posts-srv)
+# In the response you get NodePort which you can view in browser using (localhost:<NodePort>/posts)

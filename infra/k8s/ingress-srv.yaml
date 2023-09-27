@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-srv
+  # Annotation section is going to help ingress-controller that we are feeding it some routing rules
+  # Ingress cluster scans all the objects or config files that we have in our cluster with exact annotation as defined below
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+spec:
+  #rules of How to take incoming traffic and route them on different pods
+  rules:
+  #With kubernetes we can ahve multiple apps inside same cluster but they are on different domains,
+  # so we specify the domain here that apply these configs on it
+  # we have added posts.com in the etc/hosts with like 127.0.0.1 hosts.com
+  # Behind the scenes every request that comes to posts.com, ingress.nginx will take this this request and route it to 
+  # appropraite service that will route it to appropriate pod
+    - host: posts.com
+      http: 
+        paths: 
+          - path: /posts/create
+            pathType: Prefix
+            backend: 
+              service:
+                name: posts-clusterip-srv
+                port:
+                  number: 4000
+          - path: /posts
+            pathType: Prefix
+            backend: 
+                service:
+                  name: query-srv
+                  port:
+                    number: 4002
+          - path: /posts/?(.*)/comments
+            pathType: Prefix
+            backend: 
+                service:
+                  name: comments-srv
+                  port:
+                    number: 4001
+          # Base path should be at last, these are ordered from grater imp to least imp 
+          - path: /?(.*)
+            pathType: Prefix
+            backend: 
+                service:
+                  name: client-srv
+                  port:
+                    number: 3000
