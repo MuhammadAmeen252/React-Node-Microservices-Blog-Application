@@ -1,0 +1,70 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+# Tells skaffold that there is collection of different config files intended for kubernetees inside the infra.k8s directory
+# Watch these files and everytime we change skaffold is going to apply those changes in k8 cluster
+# it basically dies these things: 
+#1. start scaffold
+# 2. apply changes to these files 
+#3. Whenever stop scaffold find obj related to these config files and delete them
+deploy:
+  kubectl:
+    manifests:
+      - ./infra/k8s/*
+# It tells some pod is running in client directory whenever somethings changes in that directory scaffold is somehow try to identify thsoe changes and update our pod
+build:
+  local:
+    push: false
+  artifacts:
+  #An array
+    - image: ameen252/client
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+        # if the change is in js file then just take that file and directly copy it in our pod 
+        # If something is not specified in this rule then scaffold is going to rebuild this entire image e.g install new dependency
+          - src: 'src/**/*.js'
+            dest: .
+    - image: ameen252/comments
+      context: comments
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '*.js'
+            dest: .
+    - image: ameen252/event-bus
+      context: event-bus
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '*.js'
+            dest: .
+    - image: ameen252/moderation
+      context: moderation
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '*.js'
+            dest: .
+    - image: ameen252/posts
+      context: posts
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '*.js'
+            dest: .
+    - image: ameen252/query
+      context: query
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '*.js'
+            dest: .
+#To start scaffold file run 'skaffold dev'
+# hit ctl+c on where scaffold command is run its going to delete all objects assciated with that cluster and stop it
